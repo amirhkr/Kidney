@@ -3,14 +3,43 @@ from openpyxl import load_workbook
 import datetime
 
 # load workbooks
-KFR_file_Path = 'C:/Users/s4597917/Desktop/Kidney/Amir_KFRE_MetroNorth_UPDATED2.xlsx'
-Pathology_file_path = 'C:/Users/s4597917/Desktop/Kidney/pathology-MASTER2.xlsx'
+KFR_file_Path = 'C:/Users/s4597917/Desktop/Kidney/Amir_KFRE_MetroNorth_UPDATED3.xlsx'
+Pathology_file_path = 'C:/Users/s4597917/Desktop/Kidney/pathology-MASTER3.xlsx'
+
+# KFR_file_Path = 'C:/Users/s4597917/Desktop/Kidney/Amir_KFRE2.xlsx'
+# Pathology_file_path = 'C:/Users/s4597917/Desktop/Kidney/Path2.xlsx'
 
 wb_KFRE = load_workbook(KFR_file_Path)
 wb_PathologyMaster = load_workbook(Pathology_file_path)
 
 sheet_KFRE = wb_KFRE.active
 sheet_PathologyMaster = wb_PathologyMaster.active
+RequiredTestNames_GFR = [
+                    'GFR',
+                    'eGFR',
+                    'GFR (estimated)',
+                    'GFR (estimated) iSTAT']
+
+RequiredTestNames_URINE = [
+                    'Albumin/Creatinine ratio',
+                    'R U-Albumin/Creat',
+                    'Protein/Creatinine',
+                    'R-U-Protein/Creat',
+                    'Urine Albumin',
+                    'Calculated U-Albumin Excretion',
+                    'Urine Total protein']
+
+RequiredTestNames_URINE_ACR = [
+                    'Albumin/Creatinine ratio',
+                    'R U-Albumin/Creat',
+                    'Urine Albumin',
+                    'Calculated U-Albumin Excretion']
+
+RequiredTestNames_URINE_PCR = [
+                    'Protein/Creatinine',
+                    'R-U-Protein/Creat',
+                    'Urine Total protein']
+
 PathologyArray = []
 tempArray = []
 myDict = {}
@@ -25,13 +54,14 @@ for rowPath in sheet_PathologyMaster.iter_rows(min_row=2, max_col=sheet_Patholog
     print("Processing: " + str(Path_i))
 
     # myDict.clear()
-    PathologyArray.append({
+    if rowPath[2].value in RequiredTestNames_GFR or rowPath[2].value in RequiredTestNames_URINE:
+        PathologyArray.append({
         "PatientId": rowPath[0].value,
         "datePath": rowPath[1].value,
         "variableName": rowPath[2].value,
         "variableValue": rowPath[3].value,
         "unit": rowPath[4].value
-    })
+        })
 # Completed
 
 print('Completed reading pathology file!')
@@ -39,6 +69,7 @@ print('Completed reading pathology file!')
 for row_KFRE in sheet_KFRE.iter_rows(min_row=3, max_col=sheet_KFRE.max_column, max_row=sheet_KFRE.max_row):
     tempArray.clear()
     resultGFR_Dict = {}
+    resultURINE = {}
     KFRE_i = KFRE_i + 1
     for rowPath in PathologyArray:
         Path_i = Path_i + 1
@@ -85,8 +116,11 @@ for row_KFRE in sheet_KFRE.iter_rows(min_row=3, max_col=sheet_KFRE.max_column, m
             if tempArray[i]['variableName'] == 'GFR (estimated) iSTAT':
                 GFR_iSTAT_Array.append(dictTEST)
 
+            if tempArray[i]['variableName'] in RequiredTestNames_URINE:
+                URINE_Array.append(dictTEST)
+
     #  6 month range
-    if len(GFR_Array) == 0 and len(GFR_iSTAT_Array) == 0:# no variable found so keep searching for +/-6 month span
+    if (len(GFR_Array) == 0 and len(GFR_iSTAT_Array) == 0) or (len(URINE_Array) == 0):# no variable found so keep searching for +/-6 month span
         for i in range(len(tempArray)):
             if (((tempArray[i]['datePath'] <= date_KFRE_18MonthPast) and (
                     tempArray[i]['datePath'] >= date_KFRE_24MonthPast)) or
@@ -103,6 +137,9 @@ for row_KFRE in sheet_KFRE.iter_rows(min_row=3, max_col=sheet_KFRE.max_column, m
 
                 if tempArray[i]['variableName'] == 'GFR (estimated) iSTAT':
                     GFR_iSTAT_Array.append(dictTEST)
+
+                if tempArray[i]['variableName'] in RequiredTestNames_URINE:
+                    URINE_Array.append(dictTEST)
 
     # it's time to use the actual results
     # resultGFR_Dict = {}
@@ -185,6 +222,74 @@ for row_KFRE in sheet_KFRE.iter_rows(min_row=3, max_col=sheet_KFRE.max_column, m
         row_KFRE[11].value = resultGFR_Dict['pl2_value']
     else:
         row_KFRE[11].value = ''
+
+
+    # --------------hanld urine array-------------
+    if len(URINE_Array) == 0:
+        resultURINE = {}
+    if len(URINE_Array) == 1:
+        resultURINE = URINE_Array[0]
+    if len(URINE_Array) >= 2:
+        for URINE in RequiredTestNames_URINE:
+            OrderArray = []
+            for k in range(len(URINE_Array)):
+                if URINE == URINE_Array[k]['pl2_name']:
+                    OrderArray.append(URINE_Array[k])
+
+            if len(OrderArray) == 1:
+                resultURINE = OrderArray[0]
+            if len(OrderArray) >= 2:
+                for i in range(len(OrderArray)):
+                    if i <= len(OrderArray) - 2:
+                        date1 = OrderArray[i]['pl2_date']
+                        date2 = OrderArray[i + 1]['pl2_date']
+                        #  older than 24
+                        if (date1 >= date_KFRE_24MonthPast) and (date2 >= date_KFRE_24MonthPast):
+                            if date1 >= date2:
+                                resultURINE = OrderArray[i]
+                            else:
+                                resultURINE = OrderArray[i + 1]
+                        #  younger than 24
+                        if date1 < date_KFRE_24MonthPast and date2 < date_KFRE_24MonthPast:
+                            if date1 < date2:
+                                resultURINE = OrderArray[i + 1]
+                            else:
+                                resultURINE = OrderArray[i]
+                        #  one right, one left
+                        if date1 > date_KFRE_24MonthPast > date2:
+                            if (date1 - date_KFRE_24MonthPast) <= (date_KFRE_24MonthPast - date2):  # equal distance
+                                resultURINE = OrderArray[i]
+                            else:
+                                resultURINE = OrderArray[i + 1]
+                        #  one left, one right
+                        if date1 < date_KFRE_24MonthPast < date2:
+                            if (date_KFRE_24MonthPast - date1) <= (date2 - date_KFRE_24MonthPast):  # equal distance
+                                resultURINE = OrderArray[i]
+                            else:
+                                resultURINE = OrderArray[i + 1]
+                        OrderArray[
+                            i + 1] = resultURINE  # so we need to update the next element with the current result
+                        # because we want it ti be part of comparison for the next iteration
+            if 'pl2_date' in resultURINE:
+                break
+
+    #  update Excell
+    if 'pl2_date' in resultURINE:
+        row_KFRE[12].value = str(resultURINE['pl2_date'].day)+"/"+str(resultURINE['pl2_date'].month)+"/"+str(resultURINE['pl2_date'].year)
+    else:
+        row_KFRE[12].value = ''
+
+    if 'pl2_name' in resultURINE:
+        if resultURINE['pl2_name'] in RequiredTestNames_URINE_ACR:
+            row_KFRE[13].value = resultURINE['pl2_name']
+            row_KFRE[15].value = resultURINE['pl2_value']
+            row_KFRE[16].value = resultURINE['pl2_unit']
+        else:
+            if resultURINE['pl2_name'] in RequiredTestNames_URINE_PCR:
+                row_KFRE[14].value = resultURINE['pl2_name']
+                row_KFRE[15].value = resultURINE['pl2_value']
+                row_KFRE[16].value = resultURINE['pl2_unit']
+
 
 wb_KFRE.save(KFR_file_Path)
 wb_KFRE.close()

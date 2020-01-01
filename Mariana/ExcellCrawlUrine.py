@@ -1,20 +1,28 @@
-from openpyxl import load_workbook
-import os
-from datetime import datetime
 import dateutil.relativedelta
+from openpyxl import load_workbook
+import datetime
 
 # load workbooks
-wb_KFRE = load_workbook('C:/Users/s4597917/Desktop/Kidney/Amir_KFRE_MetroNorth_UPDATED2.xlsx')
-wb_PathologyMaster = load_workbook('C:/Users/s4597917/Desktop/Kidney/Path3.xlsx')
+KFR_file_Path = 'C:/Users/s4597917/Desktop/Kidney/Amir_KFRE_MetroNorth_UPDATED2.xlsx'
+Pathology_file_path = 'C:/Users/s4597917/Desktop/Kidney/pathology-MASTER2.xlsx'
+
+wb_KFRE = load_workbook(KFR_file_Path)
+wb_PathologyMaster = load_workbook(Pathology_file_path)
 
 sheet_KFRE = wb_KFRE.active
 sheet_PathologyMaster = wb_PathologyMaster.active
 tempArray = []
 myDict = {}
+KFRE_i = 0
+Path_i = 0
 
 for row_KFRE in sheet_KFRE.iter_rows(min_row=3, max_col=sheet_KFRE.max_column, max_row=sheet_KFRE.max_row):
     tempArray.clear()
+    resultGFR_Dict = {}
+    KFRE_i = KFRE_i + 1
     for rowPath in sheet_PathologyMaster.iter_rows(min_row=2, max_col=sheet_PathologyMaster.max_column, max_row=sheet_PathologyMaster.max_row):
+        Path_i = Path_i + 1
+        print("Processing: "+str(KFRE_i)+" from "+str(sheet_KFRE.max_row-2)+" --- "+row_KFRE[0].value+"  "+rowPath[0].value)
         if row_KFRE[0].value == rowPath[0].value:
             # myDict.clear()
             myDict = {
@@ -77,7 +85,7 @@ for row_KFRE in sheet_KFRE.iter_rows(min_row=3, max_col=sheet_KFRE.max_column, m
                     GFR_iSTAT_Array.append(dictTEST)
 
     # it's time to use the actual results
-    resultGFR_Dict = {}
+    # resultGFR_Dict = {}
     if len(GFR_Array) == 0:
         if len(GFR_iSTAT_Array) == 1:
             resultGFR_Dict = GFR_iSTAT_Array[0]
@@ -148,9 +156,12 @@ for row_KFRE in sheet_KFRE.iter_rows(min_row=3, max_col=sheet_KFRE.max_column, m
                     # because we want it ti be part of comparison for the next iteration
 
     #  update Excell
-#     row_KFRE[10].value = resultGFR_Dict['pl2_date']
-#     row_KFRE[11].value = resultGFR_Dict['pl2_value']
-#
-# wb_KFRE.save()
+    if 'pl2_date' in resultGFR_Dict:
+        row_KFRE[10].value = str(resultGFR_Dict['pl2_date'].day)+"/"+str(resultGFR_Dict['pl2_date'].month)+"/"+str(resultGFR_Dict['pl2_date'].year)
+    if 'pl2_value' in resultGFR_Dict:
+        row_KFRE[11].value = resultGFR_Dict['pl2_value']
+
+wb_KFRE.save(KFR_file_Path)
 wb_KFRE.close()
 wb_PathologyMaster.close()
+print('Done!')
