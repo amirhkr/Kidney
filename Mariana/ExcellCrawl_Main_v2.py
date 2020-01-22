@@ -144,13 +144,13 @@ for row_KFRE in sheet_KFRE.iter_rows(min_row=3, max_col=sheet_KFRE.max_column, m
                     "pl2_value": tempArray[i]['variableValue'],
                     "pl2_unit": tempArray[i]['unit']
                 }
-                if ((tempArray[i]['variableName'] == 'GFR') or (tempArray[i]['variableName'] == 'eGFR') or (tempArray[i]['variableName'] == 'GFR (estimated)')) and len(GFR_Array) == 0:
+                if (tempArray[i]['variableName'] == 'GFR') or (tempArray[i]['variableName'] == 'eGFR') or (tempArray[i]['variableName'] == 'GFR (estimated)'):
                     GFR_Array.append(dictTEST)
 
-                if tempArray[i]['variableName'] == 'GFR (estimated) iSTAT' and len(GFR_iSTAT_Array) == 0:
+                if tempArray[i]['variableName'] == 'GFR (estimated) iSTAT':
                     GFR_iSTAT_Array.append(dictTEST)
 
-                if tempArray[i]['variableName'] in RequiredTestNames_URINE and len(URINE_Array) == 0:
+                if tempArray[i]['variableName'] in RequiredTestNames_URINE:
                     URINE_Array.append(dictTEST)
 
     #  7 month range
@@ -166,13 +166,13 @@ for row_KFRE in sheet_KFRE.iter_rows(min_row=3, max_col=sheet_KFRE.max_column, m
                     "pl2_value": tempArray[i]['variableValue'],
                     "pl2_unit": tempArray[i]['unit']
                 }
-                if ((tempArray[i]['variableName'] == 'GFR') or (tempArray[i]['variableName'] == 'eGFR') or (tempArray[i]['variableName'] == 'GFR (estimated)')) and len(GFR_Array) == 0:
+                if (tempArray[i]['variableName'] == 'GFR') or (tempArray[i]['variableName'] == 'eGFR') or (tempArray[i]['variableName'] == 'GFR (estimated)'):
                     GFR_Array.append(dictTEST)
 
-                if tempArray[i]['variableName'] == 'GFR (estimated) iSTAT' and len(GFR_iSTAT_Array) == 0:
+                if tempArray[i]['variableName'] == 'GFR (estimated) iSTAT':
                     GFR_iSTAT_Array.append(dictTEST)
 
-                if tempArray[i]['variableName'] in RequiredTestNames_URINE and len(URINE_Array) == 0:
+                if tempArray[i]['variableName'] in RequiredTestNames_URINE:
                     URINE_Array.append(dictTEST)
 
     # it's time to use the actual results

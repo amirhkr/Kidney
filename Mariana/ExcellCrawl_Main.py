@@ -3,8 +3,8 @@ from openpyxl import load_workbook
 import datetime
 
 # load workbooks
-KFR_file_Path = 'C:/Users/s4597917/Desktop/Kidney/Amir_KFRE_MetroNorth_UPDATED3.xlsx'
-Pathology_file_path = 'C:/Users/s4597917/Desktop/Kidney/pathology-MASTER3.xlsx'
+KFR_file_Path = 'C:/Users/s4597917/Desktop/Kidney/Amir_KFRE_MetroNorth_UPDATED2.xlsx'
+Pathology_file_path = 'C:/Users/s4597917/Desktop/Kidney/pathology-MASTER2.xlsx'
 
 # KFR_file_Path = 'C:/Users/s4597917/Desktop/Kidney/Amir_KFRE2.xlsx'
 # Pathology_file_path = 'C:/Users/s4597917/Desktop/Kidney/Path2.xlsx'
